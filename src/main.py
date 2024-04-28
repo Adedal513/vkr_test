@@ -2,13 +2,15 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as F
 from pyspark.sql.functions import *
-from utils import udf_api_call, response_schema
+from utils import udf_api_call, cassandra_sink
 
 spark = SparkSession \
     .builder \
     .appName("Streaming from Kafka") \
     .config("spark.streaming.stopGracefullyOnShutdown", True) \
     .config('spark.jars.packages', 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0') \
+    .config("spark.cassandra.connection.host", "84.201.162.146") \
+    .config("spark.sql.extensions", "com.datastax.spark.connector.CassandraSparkExtensions") \
     .config("spark.sql.shuffle.partitions", 4) \
     .master("local[*]") \
     .getOrCreate()
@@ -25,7 +27,7 @@ schema = StructType(
 df = spark\
       .readStream \
       .format("kafka") \
-      .option("kafka.bootstrap.servers", "158.160.25.170:9092") \
+      .option("kafka.bootstrap.servers", "51.250.23.86:9092") \
       .option("subscribe", "text-messages") \
       .option("startingOffsets", "earliest") \
       .load()
@@ -45,12 +47,10 @@ raw_data = df.selectExpr(
 )
 
 query = raw_data.withColumn(
-    "preds",
+    "classes",
     udf_api_call(col("text"))
 )
 
-res = query.writeStream \
-    .format('console') \
-    .start()
+res = query.writeStream.foreachBatch(cassandra_sink).start()
 
 res.awaitTermination()

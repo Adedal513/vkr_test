@@ -14,7 +14,7 @@ class BERTMulticlassToxicityClassifier(nn.Module):
         self.dropout = nn.Dropout(0.1) # Dropout для предотвращения переобучения
         self.relu1 = nn.ReLU() # Нелинейный слой
         self.fc1 = nn.Linear(312,64)
-        self.relu2 = nn.ReLU()
+        self.relu2 = nn.ReLU() # Нелинейный слой
         self.fc2 = nn.Linear(64, 4)
     
     def forward(self, sent_id, mask):

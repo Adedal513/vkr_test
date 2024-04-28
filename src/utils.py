@@ -1,9 +1,14 @@
 import requests
 import json
 from pyspark.sql.functions import udf, col, explode
-from pyspark.sql.types import StructType, StructField, DoubleType
+from pyspark.sql.types import StructType, StructField, DoubleType, StringType, MapType
 from pyspark.sql import Row
 from http import HTTPStatus
+
+
+def cassandra_sink(df, epoch_id):
+    df.write.format("org.apache.spark.sql.cassandra")\
+        .options(table="messages", keyspace="main").mode("append").save()
 
 def execute_api_call(message_text: str) -> dict:
     """
@@ -30,11 +35,5 @@ def execute_api_call(message_text: str) -> dict:
     if res != None and res.status_code == HTTPStatus.OK:
         return json.loads(res.text)
     
-response_schema = StructType([
-    StructField("non-toxic", DoubleType()),
-    StructField("insult", DoubleType()),
-    StructField("threat", DoubleType()),
-    StructField("obscinity", DoubleType()),
-])
-
+response_schema = MapType(StringType(), StringType())
 udf_api_call = udf(execute_api_call, response_schema)
