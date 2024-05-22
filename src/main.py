@@ -4,17 +4,19 @@ from pyspark.sql import functions as F
 from pyspark.sql.functions import *
 from utils import udf_api_call, cassandra_sink
 
+# Создание spark-сесии на клиентском устройстве
 spark = SparkSession \
     .builder \
     .appName("Streaming from Kafka") \
     .config("spark.streaming.stopGracefullyOnShutdown", True) \
     .config('spark.jars.packages', 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0') \
-    .config("spark.cassandra.connection.host", "84.201.162.146") \
+    .config("spark.cassandra.connection.host", "158.160.89.227") \
     .config("spark.sql.extensions", "com.datastax.spark.connector.CassandraSparkExtensions") \
     .config("spark.sql.shuffle.partitions", 4) \
     .master("local[*]") \
     .getOrCreate()
 
+# Схема чтения данных
 schema = StructType(
     [
         StructField("text", StringType(), True), # Непосредственный текст сообщения
@@ -24,14 +26,16 @@ schema = StructType(
     ]
 )
 
+# Подключение к источнику
 df = spark\
       .readStream \
       .format("kafka") \
-      .option("kafka.bootstrap.servers", "51.250.23.86:9092") \
+      .option("kafka.bootstrap.servers", "84.201.176.72:9092") \
       .option("subscribe", "text-messages") \
       .option("startingOffsets", "earliest") \
       .load()
 
+# Чтение и десериализация контента
 raw_data = df.selectExpr(
     "CAST(key AS STRING)",
     "CAST(value AS STRING)"
@@ -46,11 +50,13 @@ raw_data = df.selectExpr(
     col("deserialized_data.*")
 )
 
+# Совершение запроса к ML API
 query = raw_data.withColumn(
     "classes",
     udf_api_call(col("text"))
 )
 
+# Выгрузка данных в СУБД Cassandra
 res = query.writeStream.foreachBatch(cassandra_sink).start()
 
 res.awaitTermination()

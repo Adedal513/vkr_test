@@ -10,3 +10,11 @@ def get_ts_df():
     time_series = query_db('select created_at, class as category, cnt from time_series;')
     time_series['created_at'] = time_series['created_at'].apply(lambda x: x.date())
     return time_series
+
+def get_day_stats():
+    day_stats = query_db('select * from day_stats;')
+    return day_stats
+
+def get_product_category_stats():
+    cat_stats = query_db('select product_category, amount, class as pred from product_category_stats;')
+    return cat_stats

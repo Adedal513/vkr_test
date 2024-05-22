@@ -52,12 +52,14 @@ class ModelHandler(BaseHandler):
         self.initialized = True
     
     def preprocess(self, data):
-        raw_data = data[0].get('text')
-
-        if raw_data is None:
+        text = data[0].get('text')
+        
+        if text is None:
             raw_data = data[0].get('body')
             text = raw_data.get('text')
-        
+        logger.error('FUCK FUCK FUCCCCCKK')
+        logger.error(data)
+        logger.error(text)
         tokens = self.tokenizer.encode_plus(
             text,
             max_length = 50,

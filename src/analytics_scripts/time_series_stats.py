@@ -9,7 +9,7 @@ spark = SparkSession \
     .appName("Streaming from Kafka") \
     .config("spark.streaming.stopGracefullyOnShutdown", True) \
     .config('spark.jars.packages', 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0') \
-    .config("spark.cassandra.connection.host", "158.160.70.90") \
+    .config("spark.cassandra.connection.host", "158.160.89.227") \
     .config("spark.sql.extensions", "com.datastax.spark.connector.CassandraSparkExtensions") \
     .config("spark.sql.shuffle.partitions", 4) \
     .config('confirm.truncate', True) \
